@@ -19,7 +19,8 @@ Leap.loop({
     //controlGrips(hand, currentTime);
     //controlWrist(hand, currentTime);
     //controlElbow(hand, currentTime);
-    controlShoulder(hand, currentTime);
+    //controlShoulder(hand, currentTime);
+    controlBase(hand, currentTime);
 
     previousTime = currentTime;
   }
@@ -147,4 +148,31 @@ function controlShoulder(hand, currentTime){
     }
 
     previousPalmPosition2 = palmPosition;
+}
+
+
+var previousYaw = null;
+function controlBase(hand, currentTime){
+    var yaw  = hand.yaw();
+
+    if(previousYaw && previousTime){
+      var dx = previousYaw - yaw;
+      var dt = currentTime - previousTime;
+
+      dx = Math.floor(dx*1000) * -1;
+      console.log('dx',dx);
+
+      if(dx > 2){
+        console.log('up');
+        arm.baseClockwise();
+      }else if(dx < -2){
+        console.log('down');
+        arm.baseCounterClockwise();
+      }else if(dx === 0){
+        console.log('stop');
+        arm.stop(); 
+      }
+    }
+
+    previousYaw = yaw;
 }
