@@ -18,7 +18,8 @@ Leap.loop({
 
     //controlGrips(hand, currentTime);
     //controlWrist(hand, currentTime);
-    controlElbow(hand, currentTime);
+    //controlElbow(hand, currentTime);
+    controlShoulder(hand, currentTime);
 
     previousTime = currentTime;
   }
@@ -120,4 +121,30 @@ function controlElbow(hand, currentTime){
     }
 
     previousPalmPosition = palmPosition;
+}
+
+
+var previousPalmPosition2;
+function controlShoulder(hand, currentTime){
+    var palmPosition  = hand.palmPosition[2];
+
+    if(previousPalmPosition2 && previousTime){
+      var dx = previousPalmPosition2 - palmPosition;
+      var dt = currentTime - previousTime;
+
+      dx = Math.floor(dx * 10) * -1;
+      console.log('dx',dx);
+      if(dx > 1){
+        console.log('shoulder up');
+        arm.shoulderUp();
+      }else if(dx < -1){
+        console.log('shoulder down');
+        arm.shoulderDown();
+      }else if(dx === 0){
+        console.log('shoulder stop');
+        arm.stop(); 
+      }
+    }
+
+    previousPalmPosition2 = palmPosition;
 }
