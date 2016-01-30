@@ -16,20 +16,28 @@ Leap.loop({
 
     var currentTime = new Date();
 
-    //controlGrips(hand, currentTime);
-    //controlWrist(hand, currentTime);
-    //controlElbow(hand, currentTime);
-    //controlShoulder(hand, currentTime);
-    controlBase(hand, currentTime);
+    var b1 = controlGrips(hand, currentTime);
+    var b2 = controlWrist(hand, currentTime);
+    var b3 = controlElbow(hand, currentTime);
+    var b4 = controlShoulder(hand, currentTime);
+    var b5 = controlBase(hand, currentTime);
+
+
+    var finalBuffer = new Buffer([
+      b1[0] | b2[0] | b3[0] | b4[0] | b5[0],
+      b1[1] | b2[1] | b3[1] | b4[1] | b5[1],
+      b1[2] | b2[2] | b3[2] | b4[2] | b5[2]
+    ]); 
+    console.log('finalBuffer',finalBuffer); 
+    arm.sendCommand(finalBuffer);
 
     previousTime = currentTime;
   }
-
 });
-
 
 var previousPitch = null;
 function controlWrist(hand, currentTime){
+    var toReturn = arm.commands.cmdStop;
     var pitch  = hand.pitch();
 
     if(previousPitch && previousTime){
@@ -39,24 +47,23 @@ function controlWrist(hand, currentTime){
       dx = Math.floor(dx*1000) * -1;
 
       if(dx > 1){
-        console.log('up');
-        arm.wristUp();
+        toReturn = arm.commands.cmdWristUp;
       }else if(dx < -1){
-        console.log('down');
-        arm.wristDown();
+        toReturn = arm.commands.cmdWristDown;
       }else if(dx === 0){
-        console.log('stop');
-        arm.stop(); 
+        toReturn = arm.commands.cmdStop;
       }
     }
 
     previousPitch = pitch;
+    return toReturn;
 }
 
 
 var previousDistance = null;
 var window = [];
 function controlGrips(hand, currentTime){
+  var toReturn = arm.commands.cmdStop;
   var thumbPosition = hand.fingers[0].dipPosition;
   var pointerPosition = hand.fingers[1].dipPosition;
   var absoluteDistance = Math.sqrt(
@@ -86,21 +93,23 @@ function controlGrips(hand, currentTime){
 
       //start the robot
       if(normalizedAvg >= 2 && normalizedAvg <= 10){
-        arm.gripsOpen();
+        toReturn = arm.commands.cmdGripsOpen;
       }else if(normalizedAvg <= -2 && normalizedAvg >= -10){
-        arm.gripsClose();
+        toReturn = arm.commands.cmdGripsClose;
       }else if(normalizedAvg === 0){
-        arm.stop();
+        toReturn = arm.commands.cmdStop;
       }
     }
   }
 
   previousDistance = absoluteDistance;
+  return toReturn;
 }
 
 
 var previousPalmPosition;
 function controlElbow(hand, currentTime){
+    var toReturn = arm.commands.cmdStop;
     var palmPosition  = hand.palmPosition[1];
 
     if(previousPalmPosition && previousTime){
@@ -111,48 +120,52 @@ function controlElbow(hand, currentTime){
       console.log('dx',dx);
       if(dx > 1){
         console.log('elbow up');
-        arm.elbowUp();
+        toReturn = arm.commands.cmdElbowUp;
       }else if(dx < -1){
         console.log('elbow down');
-        arm.elbowDown();
+        toReturn = arm.commands.cmdElbowDown;
       }else if(dx === 0){
         console.log('elbow stop');
-        arm.stop(); 
+        toReturn = arm.commands.cmdStop; 
       }
     }
 
     previousPalmPosition = palmPosition;
+    return toReturn;
 }
 
 
 var previousPalmPosition2;
 function controlShoulder(hand, currentTime){
-    var palmPosition  = hand.palmPosition[2];
+  var toReturn = arm.commands.cmdStop;
+  var palmPosition  = hand.palmPosition[2];
 
-    if(previousPalmPosition2 && previousTime){
-      var dx = previousPalmPosition2 - palmPosition;
-      var dt = currentTime - previousTime;
+  if(previousPalmPosition2 && previousTime){
+    var dx = previousPalmPosition2 - palmPosition;
+    var dt = currentTime - previousTime;
 
-      dx = Math.floor(dx * 10) * -1;
-      console.log('dx',dx);
-      if(dx > 1){
-        console.log('shoulder up');
-        arm.shoulderUp();
-      }else if(dx < -1){
-        console.log('shoulder down');
-        arm.shoulderDown();
-      }else if(dx === 0){
-        console.log('shoulder stop');
-        arm.stop(); 
-      }
+    dx = Math.floor(dx * 10) * -1;
+    console.log('dx',dx);
+    if(dx > 1){
+      console.log('shoulder up');
+      toReturn = arm.commands.cmdShoulderUp;
+    }else if(dx < -1){
+      console.log('shoulder down');
+      toReturn = arm.commands.cmdShoulderDown;
+    }else if(dx === 0){
+      console.log('shoulder stop');
+      toReturn = arm.commands.cmdStop;
     }
+  }
 
-    previousPalmPosition2 = palmPosition;
+  previousPalmPosition2 = palmPosition;
+  return toReturn;
 }
 
 
 var previousYaw = null;
 function controlBase(hand, currentTime){
+    var toReturn = arm.commands.cmdStop;
     var yaw  = hand.yaw();
 
     if(previousYaw && previousTime){
@@ -164,15 +177,16 @@ function controlBase(hand, currentTime){
 
       if(dx > 2){
         console.log('up');
-        arm.baseClockwise();
+        toReturn = arm.commands.cmdBaseClockwise;
       }else if(dx < -2){
         console.log('down');
-        arm.baseCounterClockwise();
+        toReturn = arm.commands.cmdBaseCounterClockwise;
       }else if(dx === 0){
         console.log('stop');
-        arm.stop(); 
+        toReturn = arm.commands.cmdStop;
       }
     }
 
     previousYaw = yaw;
+    return toReturn;
 }
