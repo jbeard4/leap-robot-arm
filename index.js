@@ -9,6 +9,17 @@ Leap.loop({
   hand: function(hand){
     if(hand.type !== 'right') return;
 
+    var normalX = Math.round(hand.palmNormal[0]);
+    var normalY = Math.round(hand.palmNormal[1]);
+    var normalZ = Math.round(hand.palmNormal[2]);
+
+
+    console.log(
+      normalX,
+      normalY,
+      normalZ
+    );
+
     //kill switch
     clearTimeout(timeout); 
     timeout = setTimeout(function(){
@@ -17,20 +28,31 @@ Leap.loop({
 
     var currentTime = new Date();
 
-    var b1 = arm.commands.cmdStop; //controlGrips(hand, currentTime);
-    var b2 = arm.commands.cmdStop; //controlWrist(hand, currentTime);
-    var b3 = arm.commands.cmdStop; //controlElbow(hand, currentTime);
-    var b4 = arm.commands.cmdStop; //controlShoulder(hand, currentTime);
-    var b5 = arm.commands.cmdStop; //controlBase(hand, currentTime);
+    //console.log(normalX, normalY, normalZ);
+   
+    var finalBuffer;
+    if(normalX === -1){
+      //palm left -> gripper
+      finalBuffer = controlGrips(hand, currentTime);
+    }else if(normalX === 0 && normalY === -1 && normalZ === 0){
+      //palm down
+      finalBuffer = controlWrist(hand, currentTime);
+    }else if(normalX === 0 && normalY === 1 && normalZ === 0){
+      //palm up
+      finalBuffer = controlElbow(hand, currentTime);
+    }else if(normalX === 0 && normalY === 0 && normalZ === -1){
+      //palm front
+      finalBuffer = controlShoulder(hand, currentTime);
+    }else{
+      //continue
+    }
 
 
-    var finalBuffer = new Buffer([
-      b1[0] | b2[0] | b3[0] | b4[0] | b5[0],
-      b1[1] | b2[1] | b3[1] | b4[1] | b5[1],
-      b1[2] | b2[2] | b3[2] | b4[2] | b5[2]
-    ]); 
+    //TODO: contro lbase
+    //var b5 = arm.commands.cmdStop; //controlBase(hand, currentTime);
+
     //console.log('finalBuffer',finalBuffer); 
-    arm.sendCommand(finalBuffer);
+    if(finalBuffer) arm.sendCommand(finalBuffer);
 
     previousTime = currentTime;
   }
@@ -72,11 +94,6 @@ function controlGrips(hand, currentTime){
     Math.pow(pointerPosition[1] - thumbPosition[1], 2) +
     Math.pow(pointerPosition[2] - thumbPosition[2], 2)
   );
-  console.log('distance',absoluteDistance);
-
-  if(absoluteDistance <= 45){
-    return toReturn;
-  }
 
   var currentTime = new Date();
   if(previousDistance  !== undefined && previousTime){
