@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "owi-robot-arm": "^0.0.1"
+    "leapjs": "^0.6.4",
+    "owi-robot-arm": "jbeard4/owi-robot-arm"
   },
   "devDependencies": {},
   "scripts": {
