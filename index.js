@@ -16,11 +16,11 @@ Leap.loop({
 
     var currentTime = new Date();
 
-    var b1 = controlGrips(hand, currentTime);
-    var b2 = controlWrist(hand, currentTime);
-    var b3 = controlElbow(hand, currentTime);
-    var b4 = controlShoulder(hand, currentTime);
-    var b5 = controlBase(hand, currentTime);
+    var b1 = arm.commands.cmdStop; //controlGrips(hand, currentTime);
+    var b2 = arm.commands.cmdStop; //controlWrist(hand, currentTime);
+    var b3 = arm.commands.cmdStop; //controlElbow(hand, currentTime);
+    var b4 = arm.commands.cmdStop; //controlShoulder(hand, currentTime);
+    var b5 = arm.commands.cmdStop; //controlBase(hand, currentTime);
 
 
     var finalBuffer = new Buffer([
@@ -77,28 +77,17 @@ function controlGrips(hand, currentTime){
   if(previousDistance && previousTime){
     var dx = previousDistance - absoluteDistance;
     var dt = currentTime - previousTime;
-    var velocity = dx/dt;
 
-    window.push(velocity);
 
-    if(window.length > 10){
-      window.shift();
-    }
-    if(window.length === 10){
-      var sum = window.reduce(function(a, b) { return a + b; });
-      var avg = sum / window.length;
-
-      var normalizedAvg = Math.floor(avg * 100) * -1;
-      console.log('avgVelocity',normalizedAvg);
-
-      //start the robot
-      if(normalizedAvg >= 2 && normalizedAvg <= 10){
-        toReturn = arm.commands.cmdGripsOpen;
-      }else if(normalizedAvg <= -2 && normalizedAvg >= -10){
-        toReturn = arm.commands.cmdGripsClose;
-      }else if(normalizedAvg === 0){
-        toReturn = arm.commands.cmdStop;
-      }
+    dx = Math.floor(dx * 10) * -1;
+    console.log('dx',dx);
+    //start the robot
+    if(dx >= 2 && dx <= 10){
+      toReturn = arm.commands.cmdGripsOpen;
+    }else if(dx <= -2 && dx >= -10){
+      toReturn = arm.commands.cmdGripsClose;
+    }else if(dx === 0){
+      toReturn = arm.commands.cmdStop;
     }
   }
 
