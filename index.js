@@ -7,18 +7,6 @@ var previousTime = null;
 var timeout;
 Leap.loop({
   hand: function(hand){
-    if(hand.type !== 'right') return;
-
-    var normalX = Math.round(hand.palmNormal[0]);
-    var normalY = Math.round(hand.palmNormal[1]);
-    var normalZ = Math.round(hand.palmNormal[2]);
-
-
-    console.log(
-      normalX,
-      normalY,
-      normalZ
-    );
 
     //kill switch
     clearTimeout(timeout); 
@@ -28,28 +16,44 @@ Leap.loop({
 
     var currentTime = new Date();
 
-    //console.log(normalX, normalY, normalZ);
-   
     var finalBuffer;
-    if(normalX === -1){
-      //palm left -> gripper
-      finalBuffer = controlGrips(hand, currentTime);
-    }else if(normalX === 0 && normalY === -1 && normalZ === 0){
-      //palm down
-      finalBuffer = controlWrist(hand, currentTime);
-    }else if(normalX === 0 && normalY === 1 && normalZ === 0){
-      //palm up
-      finalBuffer = controlElbow(hand, currentTime);
-    }else if(normalX === 0 && normalY === 0 && normalZ === -1){
-      //palm front
-      finalBuffer = controlShoulder(hand, currentTime);
+    if(hand.type === 'right'){
+
+      var normalX = Math.round(hand.palmNormal[0]);
+      var normalY = Math.round(hand.palmNormal[1]);
+      var normalZ = Math.round(hand.palmNormal[2]);
+
+
+      /*
+      console.log(
+        normalX,
+        normalY,
+        normalZ
+      );
+      */
+
+      //console.log(normalX, normalY, normalZ);
+     
+      if(normalX === -1){
+        //palm left -> gripper
+        finalBuffer = controlGrips(hand, currentTime);
+      }else if(normalX === 0 && normalY === -1 && normalZ === 0){
+        //palm down
+        finalBuffer = controlWrist(hand, currentTime);
+      }else if(normalX === 0 && normalY === 1 && normalZ === 0){
+        //palm up
+        finalBuffer = controlElbow(hand, currentTime);
+      }else if(normalX === 0 && normalY === 0 && normalZ === -1){
+        //palm front
+        finalBuffer = controlShoulder(hand, currentTime);
+      }else{
+        //continue
+      }
+    }else if(hand.type === 'left'){
+      finalBuffer = controlBase(hand, currentTime);
     }else{
-      //continue
+      throw new Error('Unexpected hand type!');
     }
-
-
-    //TODO: contro lbase
-    //var b5 = arm.commands.cmdStop; //controlBase(hand, currentTime);
 
     //console.log('finalBuffer',finalBuffer); 
     if(finalBuffer) arm.sendCommand(finalBuffer);
