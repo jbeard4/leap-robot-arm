@@ -2,6 +2,7 @@ var Leap = require('leapjs');
 var OWIRobotArm = require('owi-robot-arm');
 var arm = new OWIRobotArm();
 
+
 var previousTime = null;
 var timeout;
 Leap.loop({
@@ -28,7 +29,7 @@ Leap.loop({
       b1[1] | b2[1] | b3[1] | b4[1] | b5[1],
       b1[2] | b2[2] | b3[2] | b4[2] | b5[2]
     ]); 
-    console.log('finalBuffer',finalBuffer); 
+    //console.log('finalBuffer',finalBuffer); 
     arm.sendCommand(finalBuffer);
 
     previousTime = currentTime;
@@ -40,7 +41,7 @@ function controlWrist(hand, currentTime){
     var toReturn = arm.commands.cmdStop;
     var pitch  = hand.pitch();
 
-    if(previousPitch && previousTime){
+    if(previousPitch !== undefined && previousTime){
       var dx = previousPitch - pitch;
       var dt = currentTime - previousTime;
 
@@ -71,16 +72,20 @@ function controlGrips(hand, currentTime){
     Math.pow(pointerPosition[1] - thumbPosition[1], 2) +
     Math.pow(pointerPosition[2] - thumbPosition[2], 2)
   );
-  //console.log('distance',absoluteDistance);
+  console.log('distance',absoluteDistance);
+
+  if(absoluteDistance <= 45){
+    return toReturn;
+  }
 
   var currentTime = new Date();
-  if(previousDistance && previousTime){
+  if(previousDistance  !== undefined && previousTime){
     var dx = previousDistance - absoluteDistance;
     var dt = currentTime - previousTime;
 
 
     dx = Math.floor(dx * 10) * -1;
-    console.log('dx',dx);
+    //console.log('dx',dx);
     //start the robot
     if(dx >= 2 && dx <= 10){
       toReturn = arm.commands.cmdGripsOpen;
@@ -101,20 +106,20 @@ function controlElbow(hand, currentTime){
     var toReturn = arm.commands.cmdStop;
     var palmPosition  = hand.palmPosition[1];
 
-    if(previousPalmPosition && previousTime){
+    if(previousPalmPosition !== undefined  && previousTime){
       var dx = previousPalmPosition - palmPosition;
       var dt = currentTime - previousTime;
 
       dx = Math.floor(dx * 10) * -1;
-      console.log('dx',dx);
+      //console.log('dx',dx);
       if(dx > 1){
-        console.log('elbow up');
+        //console.log('elbow up');
         toReturn = arm.commands.cmdElbowUp;
       }else if(dx < -1){
-        console.log('elbow down');
+        //console.log('elbow down');
         toReturn = arm.commands.cmdElbowDown;
       }else if(dx === 0){
-        console.log('elbow stop');
+        //console.log('elbow stop');
         toReturn = arm.commands.cmdStop; 
       }
     }
@@ -129,20 +134,20 @@ function controlShoulder(hand, currentTime){
   var toReturn = arm.commands.cmdStop;
   var palmPosition  = hand.palmPosition[2];
 
-  if(previousPalmPosition2 && previousTime){
+  if(previousPalmPosition2 !== undefined  && previousTime){
     var dx = previousPalmPosition2 - palmPosition;
     var dt = currentTime - previousTime;
 
     dx = Math.floor(dx * 10) * -1;
-    console.log('dx',dx);
+    //console.log('dx',dx);
     if(dx > 1){
-      console.log('shoulder up');
+      //console.log('shoulder up');
       toReturn = arm.commands.cmdShoulderUp;
     }else if(dx < -1){
-      console.log('shoulder down');
+      //console.log('shoulder down');
       toReturn = arm.commands.cmdShoulderDown;
     }else if(dx === 0){
-      console.log('shoulder stop');
+      //console.log('shoulder stop');
       toReturn = arm.commands.cmdStop;
     }
   }
@@ -157,21 +162,21 @@ function controlBase(hand, currentTime){
     var toReturn = arm.commands.cmdStop;
     var yaw  = hand.yaw();
 
-    if(previousYaw && previousTime){
+    if(previousYaw !== undefined  && previousTime){
       var dx = previousYaw - yaw;
       var dt = currentTime - previousTime;
 
       dx = Math.floor(dx*1000) * -1;
-      console.log('dx',dx);
+      //console.log('dx',dx);
 
       if(dx > 2){
-        console.log('up');
+        //console.log('rotate clockwise');
         toReturn = arm.commands.cmdBaseClockwise;
       }else if(dx < -2){
-        console.log('down');
+        //console.log('rotate counterclockwise');
         toReturn = arm.commands.cmdBaseCounterClockwise;
       }else if(dx === 0){
-        console.log('stop');
+        //console.log('stop');
         toReturn = arm.commands.cmdStop;
       }
     }
